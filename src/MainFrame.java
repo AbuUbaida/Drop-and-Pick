@@ -1,6 +1,14 @@
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /*
@@ -28,8 +36,8 @@ public class MainFrame extends javax.swing.JFrame {
         return true;
     }
 
-    ArrayList<String> NameList = new ArrayList<String>();
-    ArrayList<String> NumberList = new ArrayList<String>();
+    ArrayList<String> ItemList = new ArrayList<String>();
+    public String path;
 
     public MainFrame() {
         initComponents();
@@ -51,9 +59,6 @@ public class MainFrame extends javax.swing.JFrame {
         inputButton = new javax.swing.JButton();
         outputField = new javax.swing.JTextField();
         outputButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
-        radButtonName = new javax.swing.JRadioButton();
-        radButtonNumber = new javax.swing.JRadioButton();
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -64,28 +69,29 @@ public class MainFrame extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(204, 204, 204));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        inputField.setEditable(false);
         inputField.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
         inputField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 inputFieldActionPerformed(evt);
             }
         });
-        jPanel1.add(inputField, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 100, 170, 33));
+        jPanel1.add(inputField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, 350, 30));
 
         inputButton.setFont(new java.awt.Font("Tahoma", 0, 15)); // NOI18N
-        inputButton.setText("Drop");
+        inputButton.setText("Choose file");
         inputButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 inputButtonActionPerformed(evt);
             }
         });
-        jPanel1.add(inputButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 100, 64, 33));
+        jPanel1.add(inputButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(460, 100, 110, 30));
 
         outputField.setFont(new java.awt.Font("Tahoma", 1, 25)); // NOI18N
         outputField.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         outputField.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         outputField.setEnabled(false);
-        jPanel1.add(outputField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 190, 430, 82));
+        jPanel1.add(outputField, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 220, 470, 82));
 
         outputButton.setFont(new java.awt.Font("Tahoma", 1, 15)); // NOI18N
         outputButton.setText("Pick");
@@ -94,28 +100,14 @@ public class MainFrame extends javax.swing.JFrame {
                 outputButtonActionPerformed(evt);
             }
         });
-        jPanel1.add(outputButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(190, 410, 252, 40));
-
-        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 15)); // NOI18N
-        jLabel1.setText("Choose from");
-        jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 340, -1, -1));
-
-        pair.add(radButtonName);
-        radButtonName.setFont(new java.awt.Font("Tahoma", 0, 15)); // NOI18N
-        radButtonName.setText("Name");
-        jPanel1.add(radButtonName, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 370, 80, -1));
-
-        pair.add(radButtonNumber);
-        radButtonNumber.setFont(new java.awt.Font("Tahoma", 0, 15)); // NOI18N
-        radButtonNumber.setText("Number");
-        jPanel1.add(radButtonNumber, new org.netbeans.lib.awtextra.AbsoluteConstraints(320, 370, 80, -1));
+        jPanel1.add(outputButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 400, 252, 40));
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 1, 19)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("Drop and Pick");
         jLabel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jLabel2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 680, 50));
+        jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 650, 50));
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 650, 480));
 
@@ -128,47 +120,55 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void inputButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputButtonActionPerformed
 
-        if (isNumber(inputField.getText())) {
-            NumberList.add(inputField.getText());
-        } else {
-            NameList.add(inputField.getText());
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+        int result = fileChooser.showOpenDialog(jPanel1);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            path = selectedFile.getAbsolutePath();
+            inputField.setText(path);
         }
-        inputField.setText("");
+        try {
+            FileReader inputFile = new FileReader(path);
+            try {
+                Scanner parser = new Scanner(inputFile);
+                while (parser.hasNextLine()) {
+                    String line = parser.nextLine();
+                    ItemList.add(line);
+
+                }
+
+            } finally {
+                inputFile.close();
+            }
+        } catch (FileNotFoundException exception) {
+            System.out.println(" not found");
+        } catch (IOException exception) {
+            System.out.println("Unexpected I/O error occured.");
+        }
+
+//        if (isNumber(inputField.getText())) {
+//            NumberList.add(inputField.getText());
+//        } else {
+//            ItemList.add(inputField.getText());
+//        }
+//        inputField.setText("");
 
     }//GEN-LAST:event_inputButtonActionPerformed
 
     private void outputButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_outputButtonActionPerformed
 
-        if (radButtonName.isSelected()) {
-//            Random random = new Random();
-//            String string=random.nextInt(NameList.size());
             try {
 
-                if (NameList.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "All the names are picked up!", "Message", JOptionPane.INFORMATION_MESSAGE);
+                if (ItemList.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "All the items are picked up!", "Message", JOptionPane.INFORMATION_MESSAGE);
                 }
-                int randomIndex = (int) (Math.random() * NameList.size());
-                outputField.setText(NameList.get(randomIndex));
-                NameList.remove(randomIndex);
+                int randomIndex = (int) (Math.random() * ItemList.size());
+                outputField.setText(ItemList.get(randomIndex));
+                ItemList.remove(randomIndex);
             } catch (Exception e) {
 
             }
-        } else {
-
-            try {
-
-                if (NumberList.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "All the numbers are picked up!", "Message", JOptionPane.INFORMATION_MESSAGE);
-                }
-                int randomIndex = (int) (Math.random() * NumberList.size());
-                outputField.setText(NumberList.get(randomIndex));
-                NumberList.remove(randomIndex);
-
-            } catch (Exception e) {
-
-            }
-        }
-
     }//GEN-LAST:event_outputButtonActionPerformed
 
     /**
@@ -210,14 +210,11 @@ public class MainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton inputButton;
     private javax.swing.JTextField inputField;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JOptionPane message;
     private javax.swing.JButton outputButton;
     private javax.swing.JTextField outputField;
     private javax.swing.ButtonGroup pair;
-    private javax.swing.JRadioButton radButtonName;
-    private javax.swing.JRadioButton radButtonNumber;
     // End of variables declaration//GEN-END:variables
 }
